@@ -1,0 +1,49 @@
+# Updating the upstream version
+
+Upstream is tracked as three independently pinned prebuilt Docker images in
+`startos/manifest/index.ts`:
+
+- `images.karakeep.source.dockerTag` — the Karakeep app itself, tagged
+  `ghcr.io/karakeep-app/karakeep:<version>` (no `v` prefix on the image tag,
+  unlike the git release tag which does have one).
+- `images.chrome.source.dockerTag` — `ghcr.io/karakeep-app/karakeep-chrome`,
+  tagged by its bundled Chrome version, not the Karakeep app version. Only
+  bump it when upstream's `docker/docker-compose.yml` moves its own pin (or
+  Chrome ships a security fix) — it does not track Karakeep releases.
+- `images.meilisearch.source.dockerTag` — `getmeili/meilisearch`, pinned to
+  whatever version upstream's own `docker/docker-compose.yml` ships. Bump it
+  in lockstep with that file, not independently — a mismatched Meilisearch
+  version is the most common cause of a broken search index after an update.
+
+## Determining the upstream version
+
+- Latest Karakeep release: `gh release view -R karakeep-app/karakeep --json tagName -q .tagName`
+  (git tag has a `v` prefix, e.g. `v0.33.2`; the image tag does not: `0.33.2`).
+- Confirm the image tag is published as multi-arch on ghcr.io before pinning it:
+  ```
+  TOK=$(curl -s "https://ghcr.io/token?service=ghcr.io&scope=repository:karakeep-app/karakeep:pull" | jq -r .token)
+  curl -s -H "Authorization: Bearer $TOK" -H "Accept: application/vnd.oci.image.index.v1+json" \
+    https://ghcr.io/v2/karakeep-app/karakeep/manifests/<tag> | jq '.manifests[].platform'
+  ```
+  Must include both `amd64` and `arm64`. Same check against
+  `karakeep-app/karakeep-chrome` for the Chrome image.
+- Current Meilisearch pin: read `docker/docker-compose.yml` at the matching
+  Karakeep git tag (`getmeili/meilisearch` image line).
+
+## Applying the bump
+
+1. Update `images.karakeep.source.dockerTag` (and `images.meilisearch.source.dockerTag`
+   if upstream's compose file moved it) in `startos/manifest/index.ts`.
+2. Bump the version in `startos/versions/current.ts` to match
+   (`<upstream-version-without-v>:0`) and update its release notes. Add a new
+   version file only if this release also needs a migration — see
+   `start-technologies/projects/start-sdk/docs/src/versions.md`.
+3. Before bumping, diff upstream's `packages/shared/config.ts` (env var
+   options) and `docker/docker-compose.yml` between the old and new tag for
+   anything this package relies on: `DATA_DIR`, `NEXTAUTH_URL`,
+   `NEXTAUTH_SECRET`, `MEILI_ADDR`, `MEILI_MASTER_KEY`, `BROWSER_WEB_URL`,
+   `DISABLE_SIGNUPS`, and the `/api/health` route. A renamed or removed
+   variable breaks `startos/main.ts` silently until someone hits it.
+4. Rebuild (`make`) and reinstall on a real StartOS box — confirm all three
+   daemons start, the web UI signs in, and search/crawling still work
+   against the new versions.
