@@ -147,6 +147,17 @@ Karakeep's data lives entirely on disk. A restored Meilisearch index is
 consistent with the restored SQLite data because both come from the same
 volume snapshot.
 
+### Backup size and duration
+
+Assets are many small files (`data/assets/<userId>/<assetId>/asset.bin` +
+`metadata.json`), so file count, not size, drives backup time: 86k files
+(4.6 GB) took ~4 hours on a first backup to an SMB share. Later backups copy
+only changes. For a from-scratch backup, a local drive is much faster.
+
+All assets are backed up on purpose. Re-fetching after a restore fails for
+dead links, and the asset type lives in `metadata.json`, not the path, so
+rsync excludes can't filter by type anyway.
+
 ## Limitations and Differences
 
 - The AI-based auto-tagging/summarization feature (`OPENAI_API_KEY` /
