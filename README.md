@@ -66,14 +66,16 @@ A single volume, `main`, holds everything this package persists:
 
 - **`store.json`** (JSON, under volume `main`) — this package's own state, not
   an upstream config file. Seeded once on install with `nextAuthSecret` and
-  `meiliMasterKey` (random, never shown to the user); `domain` and
-  `signupsDisabled` are set by the actions below. `setupMain` reads all four
-  keys on every daemon (re)start and passes them through as environment
+  `meiliMasterKey` (random, never shown to the user); `domain`,
+  `signupsDisabled`, and the `ai` object (`provider`, `baseUrl`, `apiKey`,
+  `textModel`, `imageModel`, `autoSummarize`) are set by the actions below.
+  `setupMain` reads these keys on every daemon (re)start and passes them through as environment
   variables — editing `store.json` by hand and restarting the service applies
   the edit, but the running app never reads the file itself.
 - Karakeep otherwise takes **all** of its configuration through environment
   variables (`NEXTAUTH_URL`, `NEXTAUTH_SECRET`, `MEILI_ADDR`,
-  `MEILI_MASTER_KEY`, `BROWSER_WEB_URL`, `DATA_DIR`, `DISABLE_SIGNUPS`) set in
+  `MEILI_MASTER_KEY`, `BROWSER_WEB_URL`, `DATA_DIR`, `DISABLE_SIGNUPS`, plus
+  the AI variables below when configured) set in
   `startos/main.ts` — there is no on-disk config file to inspect or edit.
 
 ## Dependencies
@@ -118,6 +120,19 @@ Accordingly:
 - **Set Primary URL** (`set-primary-url`) — choose which of the service's
   addresses `NEXTAUTH_URL` uses. Restarts the `karakeep` daemon. Safe to run
   repeatedly.
+- **Configure AI** (`configure-ai`) — connects Karakeep to an inference
+  backend for automatic tagging and summaries. Provider is one of:
+  - *Disabled* — no AI variables are set (the default).
+  - *Ollama* — sets `OLLAMA_BASE_URL` to the entered server URL.
+  - *OpenAI-compatible* — sets `OPENAI_API_KEY` and, if a URL is entered,
+    `OPENAI_BASE_URL` (blank means OpenAI itself).
+
+  Both providers also set `INFERENCE_TEXT_MODEL`, `INFERENCE_IMAGE_MODEL`,
+  and `INFERENCE_ENABLE_AUTO_SUMMARIZATION`. The inference server is not part
+  of this package; it must be reachable from the service (typically another
+  machine on the LAN). Restarts the `karakeep` daemon. Applies to new
+  bookmarks only — existing ones are processed from Karakeep's Admin Settings
+  (Regenerate AI Tags / Summaries), which queues every bookmark at once.
 
 ## Tasks
 
@@ -160,9 +175,11 @@ rsync excludes can't filter by type anyway.
 
 ## Limitations and Differences
 
-- The AI-based auto-tagging/summarization feature (`OPENAI_API_KEY` /
-  `OLLAMA_BASE_URL` upstream) is not configured by this package — it is off
-  by default, same as upstream.
+- AI tagging/summarization is off until **Configure AI** is run, same as
+  upstream. Other upstream inference variables (`INFERENCE_CONTEXT_LENGTH`,
+  `INFERENCE_NUM_WORKERS`, `OLLAMA_KEEP_ALIVE`, …) are not exposed.
+- Bookmarks imported without crawled page content are skipped by tagging
+  (logged as "missing content") until they are re-crawled.
 - OAuth login (`OAUTH_*` upstream env vars) is not wired up by this package.
 
 ---
@@ -186,12 +203,16 @@ startos_managed_env_vars:
   - BROWSER_WEB_URL
   - DATA_DIR
   - DISABLE_SIGNUPS
+  - OLLAMA_BASE_URL (when configured)
+  - OPENAI_API_KEY, OPENAI_BASE_URL (when configured)
+  - INFERENCE_TEXT_MODEL, INFERENCE_IMAGE_MODEL, INFERENCE_ENABLE_AUTO_SUMMARIZATION (when configured)
 dependencies: none
 interfaces:
   ui: { type: ui, port: 3000 }
 actions:
   - toggle-signups
   - set-primary-url
+  - configure-ai
 tasks:
   - { action: toggle-signups, severity: important }
   - { action: set-primary-url, severity: critical }

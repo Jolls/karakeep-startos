@@ -26,6 +26,18 @@ const dict = {
   'Primary URL is no longer available. Select a new one.': 17,
   // init/taskToggleSignups.ts
   "After creating your first account (which becomes the admin), you should run the Toggle Signups action to disable further registrations. As it stands, anyone with your Karakeep URL can create an account on your server.": 18,
+  // actions/configureAi.ts
+  'Configure AI': 19,
+  'Connect Karakeep to an Ollama server or an OpenAI-compatible API for automatic tagging and summaries.': 20,
+  Provider: 21,
+  Disabled: 22,
+  Ollama: 23,
+  'OpenAI-compatible': 24,
+  'Server URL': 25,
+  'API Key': 26,
+  'Text Model': 27,
+  'Image Model': 28,
+  'Summarize Automatically': 29,
 } as const
 
 /**

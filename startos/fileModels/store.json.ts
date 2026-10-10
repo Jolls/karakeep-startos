@@ -19,6 +19,25 @@ const shape = z.looseObject({
   // — so signups start enabled and this flips to true once the user runs the
   // Toggle Signups action after creating that first account.
   signupsDisabled: z.boolean().catch(false),
+  // Set by the Configure AI action; mapped to karakeep's OLLAMA_*/OPENAI_*/
+  // INFERENCE_* env vars in main.ts.
+  ai: z
+    .looseObject({
+      provider: z.enum(['none', 'ollama', 'openai']).catch('none'),
+      baseUrl: z.string().catch(''),
+      apiKey: z.string().catch(''),
+      textModel: z.string().catch(''),
+      imageModel: z.string().catch(''),
+      autoSummarize: z.boolean().catch(false),
+    })
+    .catch({
+      provider: 'none',
+      baseUrl: '',
+      apiKey: '',
+      textModel: '',
+      imageModel: '',
+      autoSummarize: false,
+    }),
 })
 
 export const storeJson = FileHelper.json(
