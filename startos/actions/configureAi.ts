@@ -57,7 +57,9 @@ export const inputSpec = InputSpec.of({
           }),
           apiKey: Value.text({
             name: i18n('API Key'),
-            description: null,
+            description: i18n(
+              "Required. A local server such as Ollama doesn't check it, so any placeholder value (for example 'ollama') works.",
+            ),
             default: null,
             required: true,
             masked: true,

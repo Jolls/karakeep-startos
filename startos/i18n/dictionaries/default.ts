@@ -38,6 +38,7 @@ const dict = {
   'Text Model': 27,
   'Image Model': 28,
   'Summarize Automatically': 29,
+  "Required. A local server such as Ollama doesn't check it, so any placeholder value (for example 'ollama') works.": 30,
 } as const
 
 /**

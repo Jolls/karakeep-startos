@@ -32,6 +32,7 @@ export default {
     27: 'Modelo de texto',
     28: 'Modelo de imagen',
     29: 'Resumir automáticamente',
+    30: "Obligatorio. Un servidor local como Ollama no la comprueba, así que sirve cualquier valor de relleno (por ejemplo 'ollama').",
   },
   de_DE: {
     0: 'Starte Karakeep!',
@@ -64,6 +65,7 @@ export default {
     27: 'Textmodell',
     28: 'Bildmodell',
     29: 'Automatisch zusammenfassen',
+    30: "Erforderlich. Ein lokaler Server wie Ollama prüft ihn nicht, daher funktioniert jeder Platzhalterwert (zum Beispiel 'ollama').",
   },
   pl_PL: {
     0: 'Uruchamianie Karakeep!',
@@ -96,6 +98,7 @@ export default {
     27: 'Model tekstowy',
     28: 'Model obrazowy',
     29: 'Streszczaj automatycznie',
+    30: "Wymagany. Lokalny serwer, taki jak Ollama, go nie sprawdza, więc działa dowolna wartość zastępcza (na przykład 'ollama').",
   },
   fr_FR: {
     0: 'Démarrage de Karakeep !',
@@ -128,5 +131,6 @@ export default {
     27: 'Modèle de texte',
     28: "Modèle d'image",
     29: 'Résumer automatiquement',
+    30: "Obligatoire. Un serveur local comme Ollama ne la vérifie pas, donc n'importe quelle valeur factice convient (par exemple 'ollama').",
   },
 } satisfies Record<string, LangDict>

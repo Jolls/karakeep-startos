@@ -125,7 +125,9 @@ Accordingly:
   - *Disabled* — no AI variables are set (the default).
   - *Ollama* — sets `OLLAMA_BASE_URL` to the entered server URL.
   - *OpenAI-compatible* — sets `OPENAI_API_KEY` and, if a URL is entered,
-    `OPENAI_BASE_URL` (blank means OpenAI itself).
+    `OPENAI_BASE_URL` (blank means OpenAI itself). The key is required by the
+    form even for local servers such as Ollama, which ignore it; any
+    placeholder works.
 
   Both providers also set `INFERENCE_TEXT_MODEL`, `INFERENCE_IMAGE_MODEL`,
   and `INFERENCE_ENABLE_AUTO_SUMMARIZATION`. The inference server is not part

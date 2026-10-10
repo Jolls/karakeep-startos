@@ -42,7 +42,9 @@ you've saved.
   bookmarks (and optionally summarize them) automatically. Choose **Ollama**
   and enter the address of an Ollama server, or **OpenAI-compatible** for
   OpenAI or any service with the same API. Then enter the text and image
-  model names. Karakeep restarts when you save.
+  model names. The API key is required even for a local server such as
+  Ollama, which ignores it — enter any placeholder like `ollama`. Karakeep
+  restarts when you save.
 
 ## Using AI tagging
 
