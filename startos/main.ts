@@ -18,6 +18,36 @@ export const main = sdk.setupMain(async ({ effects }) => {
   const signupsDisabled = await storeJson
     .read((s) => s.signupsDisabled)
     .const(effects)
+  // Read per field, like the settings above, so a change to any one of them
+  // re-runs this handler and restarts the daemon.
+  const aiProvider = await storeJson.read((s) => s.ai?.provider).const(effects)
+  const aiBaseUrl = await storeJson.read((s) => s.ai?.baseUrl).const(effects)
+  const aiApiKey = await storeJson.read((s) => s.ai?.apiKey).const(effects)
+  const aiTextModel = await storeJson
+    .read((s) => s.ai?.textModel)
+    .const(effects)
+  const aiImageModel = await storeJson
+    .read((s) => s.ai?.imageModel)
+    .const(effects)
+  const aiAutoSummarize = await storeJson
+    .read((s) => s.ai?.autoSummarize)
+    .const(effects)
+  const aiEnv: Record<string, string> =
+    !aiProvider || aiProvider === 'none'
+      ? {}
+      : {
+          ...(aiProvider === 'ollama'
+            ? { OLLAMA_BASE_URL: aiBaseUrl ?? '' }
+            : {
+                OPENAI_API_KEY: aiApiKey ?? '',
+                ...(aiBaseUrl ? { OPENAI_BASE_URL: aiBaseUrl } : {}),
+              }),
+          INFERENCE_TEXT_MODEL: aiTextModel ?? '',
+          INFERENCE_IMAGE_MODEL: aiImageModel ?? '',
+          INFERENCE_ENABLE_AUTO_SUMMARIZATION: aiAutoSummarize
+            ? 'true'
+            : 'false',
+        }
 
   const meilisearchSub = sdk.SubContainer.of(
     effects,
@@ -111,6 +141,7 @@ export const main = sdk.setupMain(async ({ effects }) => {
           MEILI_MASTER_KEY: meiliMasterKey,
           BROWSER_WEB_URL: `http://127.0.0.1:${chromePort}`,
           DISABLE_SIGNUPS: signupsDisabled ? 'true' : 'false',
+          ...aiEnv,
         },
       },
       ready: {
