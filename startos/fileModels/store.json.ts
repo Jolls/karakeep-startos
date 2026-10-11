@@ -29,6 +29,8 @@ const shape = z.looseObject({
       textModel: z.string().catch(''),
       imageModel: z.string().catch(''),
       autoSummarize: z.boolean().catch(false),
+      embeddingModel: z.string().catch(''),
+      embeddingDimensions: z.number().catch(0),
     })
     .catch({
       provider: 'none',
@@ -37,6 +39,8 @@ const shape = z.looseObject({
       textModel: '',
       imageModel: '',
       autoSummarize: false,
+      embeddingModel: '',
+      embeddingDimensions: 0,
     }),
 })
 

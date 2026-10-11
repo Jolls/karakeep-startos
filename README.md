@@ -68,7 +68,8 @@ A single volume, `main`, holds everything this package persists:
   an upstream config file. Seeded once on install with `nextAuthSecret` and
   `meiliMasterKey` (random, never shown to the user); `domain`,
   `signupsDisabled`, and the `ai` object (`provider`, `baseUrl`, `apiKey`,
-  `textModel`, `imageModel`, `autoSummarize`) are set by the actions below.
+  `textModel`, `imageModel`, `autoSummarize`, `embeddingModel`,
+  `embeddingDimensions`) are set by the actions below.
   `setupMain` reads these keys on every daemon (re)start and passes them through as environment
   variables — editing `store.json` by hand and restarting the service applies
   the edit, but the running app never reads the file itself.
@@ -130,7 +131,24 @@ Accordingly:
     placeholder works.
 
   Both providers also set `INFERENCE_TEXT_MODEL`, `INFERENCE_IMAGE_MODEL`,
-  and `INFERENCE_ENABLE_AUTO_SUMMARIZATION`. The inference server is not part
+  and `INFERENCE_ENABLE_AUTO_SUMMARIZATION`.
+
+  *Semantic Search* (per provider, off by default) controls embeddings.
+  Enabled sets `EMBEDDING_TEXT_MODEL`, `EMBEDDING_DIMENSIONS` and
+  `EMBEDDING_ENABLE_AUTO_INDEXING=true`. The action reads the dimensions
+  itself: on save it runs a temporary `karakeep` subcontainer that embeds one
+  word through the server (Ollama `/api/embed`, or `<base URL>/embeddings`
+  with the API key), stores the vector length in `store.json`, and fails the
+  save, storing nothing, if the server or model does not answer. Disabled sets
+  `EMBEDDING_ENABLE_AUTO_INDEXING=false`, because upstream otherwise turns
+  auto-indexing on whenever `OPENAI_API_KEY` is set without a base URL. No
+  `EMBEDDING_OPENAI_*` variables are set, so embeddings go to the same
+  Ollama or OpenAI-compatible server as tagging. Vectors are stored in
+  Meilisearch (upstream's `vectorstore-meilisearch` plugin, active because
+  `MEILI_ADDR` is set), which configures its embedder from
+  `EMBEDDING_DIMENSIONS` at startup. Only bookmarks created afterwards are embedded; existing ones
+  need *Regenerate Embeddings for All Bookmarks* in Karakeep's Admin
+  Settings, and a changed model needs the same. The inference server is not part
   of this package; it must be reachable from the service (typically another
   machine on the LAN). Restarts the `karakeep` daemon. Applies to new
   bookmarks only — existing ones are processed from Karakeep's Admin Settings
@@ -208,6 +226,7 @@ startos_managed_env_vars:
   - OLLAMA_BASE_URL (when configured)
   - OPENAI_API_KEY, OPENAI_BASE_URL (when configured)
   - INFERENCE_TEXT_MODEL, INFERENCE_IMAGE_MODEL, INFERENCE_ENABLE_AUTO_SUMMARIZATION (when configured)
+  - EMBEDDING_TEXT_MODEL, EMBEDDING_DIMENSIONS, EMBEDDING_ENABLE_AUTO_INDEXING (when configured)
 dependencies: none
 interfaces:
   ui: { type: ui, port: 3000 }

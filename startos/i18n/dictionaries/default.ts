@@ -39,6 +39,11 @@ const dict = {
   'Image Model': 28,
   'Summarize Automatically': 29,
   "Required. A local server such as Ollama doesn't check it, so any placeholder value (for example 'ollama') works.": 30,
+  'Semantic Search': 31,
+  'Finds bookmarks by meaning as well as keywords. Karakeep creates an embedding of each new bookmark with the model below and keeps it in Meilisearch.': 32,
+  Enabled: 33,
+  'Embedding Model': 34,
+  'When you save, Karakeep asks the server for an embedding from this model to confirm it works and to read its dimensions.': 35,
 } as const
 
 /**

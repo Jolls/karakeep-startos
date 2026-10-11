@@ -32,6 +32,12 @@ export const main = sdk.setupMain(async ({ effects }) => {
   const aiAutoSummarize = await storeJson
     .read((s) => s.ai?.autoSummarize)
     .const(effects)
+  const aiEmbeddingModel = await storeJson
+    .read((s) => s.ai?.embeddingModel)
+    .const(effects)
+  const aiEmbeddingDimensions = await storeJson
+    .read((s) => s.ai?.embeddingDimensions)
+    .const(effects)
   const aiEnv: Record<string, string> =
     !aiProvider || aiProvider === 'none'
       ? {}
@@ -47,6 +53,13 @@ export const main = sdk.setupMain(async ({ effects }) => {
           INFERENCE_ENABLE_AUTO_SUMMARIZATION: aiAutoSummarize
             ? 'true'
             : 'false',
+          ...(aiEmbeddingModel && aiEmbeddingDimensions
+            ? {
+                EMBEDDING_TEXT_MODEL: aiEmbeddingModel,
+                EMBEDDING_DIMENSIONS: String(aiEmbeddingDimensions),
+                EMBEDDING_ENABLE_AUTO_INDEXING: 'true',
+              }
+            : { EMBEDDING_ENABLE_AUTO_INDEXING: 'false' }),
         }
 
   const meilisearchSub = sdk.SubContainer.of(

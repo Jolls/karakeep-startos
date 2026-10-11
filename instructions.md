@@ -43,8 +43,9 @@ you've saved.
   and enter the address of an Ollama server, or **OpenAI-compatible** for
   OpenAI or any service with the same API. Then enter the text and image
   model names. The API key is required even for a local server such as
-  Ollama, which ignores it — enter any placeholder like `ollama`. Karakeep
-  restarts when you save.
+  Ollama, which ignores it — enter any placeholder like `ollama`. You can
+  also turn on **Semantic Search** here (see below). Karakeep restarts when
+  you save.
 
 ## Using AI tagging
 
@@ -63,3 +64,19 @@ AI only runs on new bookmarks. To process ones you already have, open
 This queues every bookmark, so on a large library it can take many hours and
 keeps your AI server busy the whole time. If the AI server is offline, those
 jobs fail; run **Regenerate AI Tags → Failed Bookmarks Only** once it is back.
+
+## Using semantic search
+
+Semantic search finds bookmarks by meaning, not just matching words. It needs
+an embedding model on the same Ollama or OpenAI-compatible server you use for
+tagging — for Ollama, pull one first.
+
+1. Run **Configure AI**, set **Semantic Search** to **Enabled**, and enter the
+   embedding model's name. When you save, Karakeep asks your server for a test
+   embedding, so the model must already be available there; if the server
+   can't be reached or doesn't have the model, the save fails with the reason.
+2. Add a bookmark. Karakeep embeds new bookmarks as it processes them.
+
+Bookmarks you already have are not embedded automatically. In Karakeep's
+**Admin Settings**, use **Regenerate Embeddings for All Bookmarks** under
+**Embedding Jobs**. Do the same if you later change the embedding model.

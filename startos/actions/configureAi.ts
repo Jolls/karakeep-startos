@@ -24,6 +24,30 @@ const modelFields = {
     description: null,
     default: false,
   }),
+  semanticSearch: Value.union({
+    name: i18n('Semantic Search'),
+    description: i18n(
+      'Finds bookmarks by meaning as well as keywords. Karakeep creates an embedding of each new bookmark with the model below and keeps it in Meilisearch.',
+    ),
+    default: 'disabled',
+    variants: Variants.of({
+      disabled: { name: i18n('Disabled'), spec: InputSpec.of({}) },
+      enabled: {
+        name: i18n('Enabled'),
+        spec: InputSpec.of({
+          embeddingModel: Value.text({
+            name: i18n('Embedding Model'),
+            description: i18n(
+              'When you save, Karakeep asks the server for an embedding from this model to confirm it works and to read its dimensions.',
+            ),
+            default: null,
+            required: true,
+            placeholder: 'nomic-embed-text',
+          }),
+        }),
+      },
+    }),
+  }),
 }
 
 export const inputSpec = InputSpec.of({
@@ -71,6 +95,71 @@ export const inputSpec = InputSpec.of({
   }),
 })
 
+// Embeds one word through the same endpoint Karakeep will use, from a
+// container with the same network as the daemon, and returns the vector length.
+const probeScript = `
+const { PROVIDER, BASE_URL, API_KEY, MODEL } = process.env
+const ollama = PROVIDER === 'ollama'
+const base = (BASE_URL || 'https://api.openai.com/v1').replace(/\\/+$/, '')
+const url = ollama ? base + '/api/embed' : base + '/embeddings'
+fetch(url, {
+  method: 'POST',
+  headers: {
+    'content-type': 'application/json',
+    ...(ollama ? {} : { authorization: 'Bearer ' + API_KEY }),
+  },
+  body: JSON.stringify({ model: MODEL, input: 'hello' }),
+  signal: AbortSignal.timeout(100000),
+})
+  .then(async (res) => {
+    const text = await res.text()
+    if (!res.ok) throw new Error('HTTP ' + res.status + ': ' + text.slice(0, 300))
+    const json = JSON.parse(text)
+    const vector = ollama ? json.embeddings?.[0] : json.data?.[0]?.embedding
+    if (!Array.isArray(vector) || !vector.length)
+      throw new Error('the response contained no embedding')
+    console.log(vector.length)
+  })
+  .catch((e) => {
+    console.error(url + ': ' + e.message + (e.cause ? ' (' + e.cause.message + ')' : ''))
+    process.exit(1)
+  })
+`
+
+async function detectEmbeddingDimensions(
+  effects: Parameters<typeof sdk.SubContainer.withTemp>[0],
+  opts: {
+    provider: 'ollama' | 'openai'
+    baseUrl: string
+    apiKey: string
+    model: string
+  },
+): Promise<number> {
+  const res = await sdk.SubContainer.withTemp(
+    effects,
+    { imageId: 'karakeep' },
+    null,
+    'embedding-probe',
+    (sub) =>
+      sub.exec(['node', '-e', probeScript], {
+        env: {
+          PROVIDER: opts.provider,
+          BASE_URL: opts.baseUrl,
+          API_KEY: opts.apiKey,
+          MODEL: opts.model,
+        },
+        timeout: 120_000,
+      }),
+  )
+  const dimensions = Number(String(res.stdout).trim())
+  if (res.exitCode !== 0 || !Number.isInteger(dimensions) || dimensions < 1) {
+    throw new Error(
+      `Could not get an embedding for "${opts.model}": ${String(res.stderr).trim() || 'the request timed out'}`,
+    )
+  }
+  return dimensions
+}
+
 export const configureAi = sdk.Action.withInput(
   // id
   'configure-ai',
@@ -104,6 +193,14 @@ export const configureAi = sdk.Action.withInput(
           textModel: ai.textModel,
           imageModel: ai.imageModel,
           autoSummarize: ai.autoSummarize,
+          semanticSearch: ai.embeddingModel
+            ? {
+                selection: 'enabled',
+                value: {
+                  embeddingModel: ai.embeddingModel,
+                },
+              }
+            : { selection: 'disabled' },
         },
       },
     } as any
@@ -112,6 +209,19 @@ export const configureAi = sdk.Action.withInput(
   // the execution function
   async ({ effects, input }) => {
     const p = input.provider
+    const embeddingModel =
+      p.selection !== 'none' && p.value.semanticSearch.selection === 'enabled'
+        ? p.value.semanticSearch.value.embeddingModel
+        : ''
+    const embeddingDimensions =
+      p.selection !== 'none' && embeddingModel
+        ? await detectEmbeddingDimensions(effects, {
+            provider: p.selection,
+            baseUrl: p.value.baseUrl ?? '',
+            apiKey: p.selection === 'openai' ? p.value.apiKey : '',
+            model: embeddingModel,
+          })
+        : 0
     await storeJson.merge(effects, {
       ai:
         p.selection === 'none'
@@ -123,6 +233,8 @@ export const configureAi = sdk.Action.withInput(
               textModel: p.value.textModel,
               imageModel: p.value.imageModel,
               autoSummarize: p.value.autoSummarize,
+              embeddingModel,
+              embeddingDimensions,
             },
     })
   },
