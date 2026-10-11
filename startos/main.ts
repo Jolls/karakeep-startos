@@ -155,6 +155,7 @@ export const main = sdk.setupMain(async ({ effects }) => {
           BROWSER_WEB_URL: `http://127.0.0.1:${chromePort}`,
           DISABLE_SIGNUPS: signupsDisabled ? 'true' : 'false',
           DB_WAL_MODE: 'true',
+          EMBEDDING_NUM_WORKERS: '10',
           ...aiEnv,
         },
       },

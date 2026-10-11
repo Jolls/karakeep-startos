@@ -76,7 +76,8 @@ A single volume, `main`, holds everything this package persists:
 - Karakeep otherwise takes **all** of its configuration through environment
   variables (`NEXTAUTH_URL`, `NEXTAUTH_SECRET`, `MEILI_ADDR`,
   `MEILI_MASTER_KEY`, `BROWSER_WEB_URL`, `DATA_DIR`, `DISABLE_SIGNUPS`,
-  `DB_WAL_MODE`, plus the AI variables below when configured) set in
+  `DB_WAL_MODE`, `EMBEDDING_NUM_WORKERS`, plus the AI variables below when
+  configured) set in
   `startos/main.ts` — there is no on-disk config file to inspect or edit.
 - `DB_WAL_MODE=true` puts both SQLite files (`db.db` and the job queue
   `queue.db`) in WAL mode. Upstream defaults it off for network filesystems;
@@ -85,6 +86,12 @@ A single volume, `main`, holds everything this package persists:
   WAL, so queuing a whole library (~17k jobs) held the web process and
   workers failed with `SQLITE_BUSY`. Backups run with the service stopped, so
   the `-wal` file is folded into `db.db` before the volume is copied.
+- `EMBEDDING_NUM_WORKERS=10` lets up to ten embedding jobs run at once
+  (upstream default 1); a lone job still starts immediately. Each index job
+  waits for its Meilisearch batch to be written, and a batch holds up to 50
+  documents or flushes after 500 ms, so with one worker every batch held a
+  single document and indexing ran at ~0.7 jobs/s. Matters only when many
+  bookmarks are embedded at once, such as Regenerate Embeddings.
 
 ## Dependencies
 
@@ -231,6 +238,7 @@ startos_managed_env_vars:
   - DATA_DIR
   - DISABLE_SIGNUPS
   - DB_WAL_MODE
+  - EMBEDDING_NUM_WORKERS
   - OLLAMA_BASE_URL (when configured)
   - OPENAI_API_KEY, OPENAI_BASE_URL (when configured)
   - INFERENCE_TEXT_MODEL, INFERENCE_IMAGE_MODEL, INFERENCE_ENABLE_AUTO_SUMMARIZATION (when configured)
