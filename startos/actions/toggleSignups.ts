@@ -25,10 +25,10 @@ export const toggleSignups = sdk.Action.withoutInput(
             'Signups are currently enabled. Run this action to prohibit new account creation.',
           ),
       warning: disabled
-        ? null
-        : i18n(
+        ? i18n(
             'Anyone with your Karakeep URL will be able to create an account on your server — and the first account to sign up becomes an admin. Be careful!',
-          ),
+          )
+        : null,
       allowedStatuses: 'any',
       group: null,
       visibility: 'enabled',
