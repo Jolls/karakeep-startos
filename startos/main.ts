@@ -156,6 +156,7 @@ export const main = sdk.setupMain(async ({ effects }) => {
           DISABLE_SIGNUPS: signupsDisabled ? 'true' : 'false',
           DB_WAL_MODE: 'true',
           EMBEDDING_NUM_WORKERS: '10',
+          SEARCH_NUM_WORKERS: '50',
           ...aiEnv,
         },
       },
