@@ -154,6 +154,7 @@ export const main = sdk.setupMain(async ({ effects }) => {
           MEILI_MASTER_KEY: meiliMasterKey,
           BROWSER_WEB_URL: `http://127.0.0.1:${chromePort}`,
           DISABLE_SIGNUPS: signupsDisabled ? 'true' : 'false',
+          DB_WAL_MODE: 'true',
           ...aiEnv,
         },
       },

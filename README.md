@@ -75,9 +75,16 @@ A single volume, `main`, holds everything this package persists:
   the edit, but the running app never reads the file itself.
 - Karakeep otherwise takes **all** of its configuration through environment
   variables (`NEXTAUTH_URL`, `NEXTAUTH_SECRET`, `MEILI_ADDR`,
-  `MEILI_MASTER_KEY`, `BROWSER_WEB_URL`, `DATA_DIR`, `DISABLE_SIGNUPS`, plus
-  the AI variables below when configured) set in
+  `MEILI_MASTER_KEY`, `BROWSER_WEB_URL`, `DATA_DIR`, `DISABLE_SIGNUPS`,
+  `DB_WAL_MODE`, plus the AI variables below when configured) set in
   `startos/main.ts` — there is no on-disk config file to inspect or edit.
+- `DB_WAL_MODE=true` puts both SQLite files (`db.db` and the job queue
+  `queue.db`) in WAL mode. Upstream defaults it off for network filesystems;
+  `main` is a local volume. Without it the queue opens in rollback-journal mode,
+  where each commit measured ~60 ms on this package's volume against ~0.2 ms in
+  WAL, so queuing a whole library (~17k jobs) held the web process and
+  workers failed with `SQLITE_BUSY`. Backups run with the service stopped, so
+  the `-wal` file is folded into `db.db` before the volume is copied.
 
 ## Dependencies
 
@@ -223,6 +230,7 @@ startos_managed_env_vars:
   - BROWSER_WEB_URL
   - DATA_DIR
   - DISABLE_SIGNUPS
+  - DB_WAL_MODE
   - OLLAMA_BASE_URL (when configured)
   - OPENAI_API_KEY, OPENAI_BASE_URL (when configured)
   - INFERENCE_TEXT_MODEL, INFERENCE_IMAGE_MODEL, INFERENCE_ENABLE_AUTO_SUMMARIZATION (when configured)
