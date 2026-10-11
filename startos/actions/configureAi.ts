@@ -93,7 +93,8 @@ export const configureAi = sdk.Action.withInput(
   // pre-fill the input form with the current values
   async ({ effects }) => {
     const ai = await storeJson.read((s) => s.ai).once()
-    if (!ai || ai.provider === 'none') return { provider: { selection: 'none' } }
+    if (!ai || ai.provider === 'none')
+      return { provider: { selection: 'none' } }
     return {
       provider: {
         selection: ai.provider,

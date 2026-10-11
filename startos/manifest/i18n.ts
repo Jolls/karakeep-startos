@@ -3,7 +3,7 @@ export const short = {
   es_ES: 'Una app autoalojable para guardar marcadores de todo tipo',
   de_DE: 'Eine selbst gehostete App zum Speichern von allem',
   pl_PL: 'Samodzielnie hostowana aplikacja do zapisywania wszystkiego',
-  fr_FR: "Une application auto-hébergée pour tout marquer",
+  fr_FR: 'Une application auto-hébergée pour tout marquer',
 }
 
 export const long = {

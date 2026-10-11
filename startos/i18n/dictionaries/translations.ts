@@ -109,7 +109,7 @@ export default {
     5: "Chrome n'est pas prêt",
     6: 'Karakeep est prêt',
     7: "Karakeep n'est pas prêt",
-    8: 'L\'interface de gestion des favoris de Karakeep',
+    8: "L'interface de gestion des favoris de Karakeep",
     9: 'Activer les inscriptions',
     10: 'Désactiver les inscriptions',
     11: 'Les inscriptions sont actuellement désactivées. Exécutez cette action pour autoriser la création de nouveaux comptes.',
