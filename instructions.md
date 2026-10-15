@@ -47,6 +47,11 @@ you've saved.
   also turn on **Semantic Search** here (see below). Karakeep restarts when
   you save.
 
+- **Set Performance** — choose **Low**, **Medium**, or **High** to match your
+  hardware. This controls how many search and embedding jobs run at once. Pick
+  a lower setting if your server becomes sluggish while Karakeep indexes a
+  large library; higher settings index faster. Karakeep restarts when you save.
+
 ## Using AI tagging
 
 Karakeep doesn't run a model itself — it needs an Ollama server (or an

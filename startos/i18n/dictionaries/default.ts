@@ -44,6 +44,13 @@ const dict = {
   Enabled: 33,
   'Embedding Model': 34,
   'When you save, Karakeep asks the server for an embedding from this model to confirm it works and to read its dimensions.': 35,
+  'Set Performance': 36,
+  'Choose how many search and embedding jobs Karakeep runs at once. Lower it on slower hardware if the server becomes sluggish while indexing.': 37,
+  'Hardware Speed': 38,
+  'Limits how many background indexing jobs run at once. Higher values index large libraries faster but use more CPU and memory. Only matters when many bookmarks are processed at once, such as Reindex All Bookmarks.': 39,
+  'Low: slow hardware (5 search, 2 embedding jobs)': 40,
+  'Medium (20 search, 5 embedding jobs)': 41,
+  'High: fast hardware (50 search, 10 embedding jobs)': 42,
 } as const
 
 /**

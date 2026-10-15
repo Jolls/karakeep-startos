@@ -69,7 +69,8 @@ A single volume, `main`, holds everything this package persists:
   `meiliMasterKey` (random, never shown to the user); `domain`,
   `signupsDisabled`, and the `ai` object (`provider`, `baseUrl`, `apiKey`,
   `textModel`, `imageModel`, `autoSummarize`, `embeddingModel`,
-  `embeddingDimensions`) are set by the actions below.
+  `embeddingDimensions`), and `performance` (`low`/`medium`/`high`, default `high`) are set by the
+  actions below.
   `setupMain` reads these keys on every daemon (re)start and passes them through as environment
   variables — editing `store.json` by hand and restarting the service applies
   the edit, but the running app never reads the file itself.
@@ -86,13 +87,16 @@ A single volume, `main`, holds everything this package persists:
   WAL, so queuing a whole library (~17k jobs) held the web process and
   workers failed with `SQLITE_BUSY`. Backups run with the service stopped, so
   the `-wal` file is folded into `db.db` before the volume is copied.
+- `EMBEDDING_NUM_WORKERS` and `SEARCH_NUM_WORKERS` come from the **Set Performance** action
+  (`store.json` `performance`): low = 2/5, medium = 5/20, high = 10/50 (embedding/search; default
+  high). Lower them if the box is CPU-starved while indexing. The details below describe the high values.
 - `EMBEDDING_NUM_WORKERS=10` lets up to ten embedding jobs run at once
   (upstream default 1); a lone job still starts immediately. Each index job
   waits for its Meilisearch batch to be written, and a batch holds up to 50
   documents or flushes after 500 ms, so with one worker every batch held a
   single document and indexing ran at ~0.7 jobs/s. Matters only when many
   bookmarks are embedded at once, such as Regenerate Embeddings.
-- `SEARCH_NUM_WORKERS=50` lets up to fifty search-indexing jobs run at once
+- `SEARCH_NUM_WORKERS=50` (high) lets up to fifty search-indexing jobs run at once
   (upstream default 1; upstream's main branch raised it to 50 after 0.33.2). Each job waits
   for its Meilisearch batch the same way, so the same reasoning applies. Matters
   only when many bookmarks are indexed at once, such as Reindex All Bookmarks.
@@ -139,6 +143,9 @@ Accordingly:
 - **Set Primary URL** (`set-primary-url`) — choose which of the service's
   addresses `NEXTAUTH_URL` uses. Restarts the `karakeep` daemon. Safe to run
   repeatedly.
+- **Set Performance** (`set-performance`) — Low/Medium/High preset for
+  `EMBEDDING_NUM_WORKERS` and `SEARCH_NUM_WORKERS` (see above). Restarts the
+  `karakeep` daemon. Safe to run repeatedly.
 - **Configure AI** (`configure-ai`) — connects Karakeep to an inference
   backend for automatic tagging and summaries. Provider is one of:
   - *Disabled* — no AI variables are set (the default).

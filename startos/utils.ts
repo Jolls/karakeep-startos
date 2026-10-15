@@ -26,3 +26,12 @@ export function getNonLocalUrls(effects: T.Effects): Promise<string[]> {
     })
     .const()
 }
+
+// Background job concurrency per "Set Performance" choice. Each job waits for
+// its Meilisearch batch, so more workers fill batches and index faster, at the
+// cost of CPU and memory.
+export const workerPresets = {
+  low: { search: 5, embedding: 2 },
+  medium: { search: 20, embedding: 5 },
+  high: { search: 50, embedding: 10 },
+} as const
