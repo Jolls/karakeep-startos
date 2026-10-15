@@ -1,7 +1,7 @@
 import { i18n } from './i18n'
 import { sdk } from './sdk'
 import { storeJson } from './fileModels/store.json'
-import { chromePort, meiliPort, uiPort } from './utils'
+import { chromePort, meiliPort, uiPort, workerPresets } from './utils'
 
 export const main = sdk.setupMain(async ({ effects }) => {
   console.info(i18n('Starting Karakeep!'))
@@ -18,6 +18,9 @@ export const main = sdk.setupMain(async ({ effects }) => {
   const signupsDisabled = await storeJson
     .read((s) => s.signupsDisabled)
     .const(effects)
+  const performance =
+    (await storeJson.read((s) => s.performance).const(effects)) ?? 'high'
+  const workers = workerPresets[performance]
   // Read per field, like the settings above, so a change to any one of them
   // re-runs this handler and restarts the daemon.
   const aiProvider = await storeJson.read((s) => s.ai?.provider).const(effects)
@@ -110,6 +113,9 @@ export const main = sdk.setupMain(async ({ effects }) => {
             effects,
             `http://127.0.0.1:${meiliPort}/health`,
             {
+              // Meilisearch answers /health slowly while indexing a backlog;
+              // the 1s default flaps and takes karakeep down with it.
+              timeout: 15_000,
               successMessage: i18n('Meilisearch is ready'),
               errorMessage: i18n('Meilisearch is not ready'),
             },
@@ -155,8 +161,8 @@ export const main = sdk.setupMain(async ({ effects }) => {
           BROWSER_WEB_URL: `http://127.0.0.1:${chromePort}`,
           DISABLE_SIGNUPS: signupsDisabled ? 'true' : 'false',
           DB_WAL_MODE: 'true',
-          EMBEDDING_NUM_WORKERS: '10',
-          SEARCH_NUM_WORKERS: '50',
+          EMBEDDING_NUM_WORKERS: String(workers.embedding),
+          SEARCH_NUM_WORKERS: String(workers.search),
           ...aiEnv,
         },
       },

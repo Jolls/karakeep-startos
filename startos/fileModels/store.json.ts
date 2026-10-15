@@ -19,6 +19,10 @@ const shape = z.looseObject({
   // — so signups start enabled and this flips to true once the user runs the
   // Toggle Signups action after creating that first account.
   signupsDisabled: z.boolean().catch(false),
+  // Set by the Set Performance action; mapped to SEARCH_NUM_WORKERS and
+  // EMBEDDING_NUM_WORKERS via workerPresets in utils.ts. 'high' matches the
+  // values earlier releases hard-coded.
+  performance: z.enum(['low', 'medium', 'high']).catch('high'),
   // Set by the Configure AI action; mapped to karakeep's OLLAMA_*/OPENAI_*/
   // INFERENCE_* env vars in main.ts.
   ai: z
