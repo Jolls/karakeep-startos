@@ -28,6 +28,7 @@ images) with AI-based automatic tagging and full-text search. See the
 - [Health Checks](#health-checks)
 - [Backups and Restore](#backups-and-restore)
 - [Limitations and Differences](#limitations-and-differences)
+- [Testing](#testing)
 - [Quick Reference for AI Consumers](#quick-reference-for-ai-consumers)
 
 ---
@@ -232,6 +233,40 @@ rsync excludes can't filter by type anyway.
 - Bookmarks imported without crawled page content are skipped by tagging
   (logged as "missing content") until they are re-crawled.
 - OAuth login (`OAUTH_*` upstream env vars) is not wired up by this package.
+
+## Testing
+
+Verified on a StartOS box (about 2 cores, 16 GB) with a library of roughly
+17,600 bookmarks:
+
+- Install, start, and the Karakeep (`/api/health`) and Meilisearch (`/health`)
+  checks on 0.34.1 with SDK 3.1.1 and the Chrome CA layer.
+- Queuing a whole library for embeddings (Admin Settings, *Regenerate Embeddings
+  for Pending Bookmarks Only*, 17,178 jobs) froze the service before
+  `DB_WAL_MODE=true`. With WAL on and `EMBEDDING_NUM_WORKERS=10` the backfill
+  finished with no lock errors, at 4-6 jobs/s (about 0.7 with one worker).
+- **Configure AI** with an Ollama server on a separate computer on the LAN:
+  `gemma3:4b` for both text and image
+  tagging, and `nomic-embed-text` (768 dimensions) for embeddings. Tagging,
+  summaries and semantic search all work with these settings.
+- Direct PDF uploads of 3, 6 and 11 at once finished the full pipeline with no
+  health-check failures. Karakeep did stall while bitcoind was restarting on the
+  same box, so avoid large batches while another heavy service is busy.
+
+Not verified:
+
+- *Regenerate Embeddings for All Bookmarks* with WAL on, to confirm the web UI
+  stays responsive during the enqueue. About 459 bookmarks have no embedding
+  status; the cause is not investigated.
+- A crawl, screenshot or archive through the Chrome 154 image after the CA layer.
+  Only that Chrome starts and the port check passes.
+- The CA layer's effect on TLS validation of a site chained to an eMudhra root.
+  The build asserts the root is gone from the bundle; Chrome's own root store
+  was not tested.
+- Ollama running on the StartOS server itself (as the separate Ollama service
+  package). Only a remote Ollama on the LAN was tried.
+- The OpenAI-compatible provider option of **Configure AI**, and models other
+  than the ones above.
 
 ---
 
