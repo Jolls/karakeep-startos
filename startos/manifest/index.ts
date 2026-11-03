@@ -17,7 +17,7 @@ export const manifest = setupManifest({
   images: {
     // Official multi-arch image. Confirmed on ghcr.io 2026-09-01: amd64 + arm64.
     karakeep: {
-      source: { dockerTag: 'ghcr.io/karakeep-app/karakeep:0.33.2' },
+      source: { dockerTag: 'ghcr.io/karakeep-app/karakeep:0.34.1' },
       arch: ['x86_64', 'aarch64'],
     },
     // Headless Chrome used by the crawler for screenshots/archival. Tagged by
@@ -25,7 +25,7 @@ export const manifest = setupManifest({
     // ghcr.io 2026-09-01: amd64 + arm64.
     chrome: {
       source: {
-        dockerTag: 'ghcr.io/karakeep-app/karakeep-chrome:151.0.7922.47-r1',
+        dockerTag: 'ghcr.io/karakeep-app/karakeep-chrome:154.0.8037.57-r1',
       },
       arch: ['x86_64', 'aarch64'],
     },
