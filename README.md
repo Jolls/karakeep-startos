@@ -42,8 +42,14 @@ reaching them by service name):
 | Subcontainer      | Image                                | Purpose                                        |
 | ------------------ | ------------------------------------- | ----------------------------------------------- |
 | `karakeep-sub`      | `ghcr.io/karakeep-app/karakeep`       | The Next.js app server (web UI + API + workers) |
-| `chrome-sub`        | `ghcr.io/karakeep-app/karakeep-chrome`| Headless Chrome the crawler drives for page archival/screenshots |
+| `chrome-sub`        | `ghcr.io/karakeep-app/karakeep-chrome` (via root `Dockerfile`) | Headless Chrome the crawler drives for page archival/screenshots |
 | `meilisearch-sub`   | `getmeili/meilisearch`                | Full-text search index                          |
+
+`chrome-sub`'s image is built through the root `Dockerfile`, a temporary layer
+that upgrades Debian's `ca-certificates` so Chrome's system store no longer
+holds the distrusted eMudhra (emSign ECC Root CA - G3) roots. It comes out once
+upstream ships a Chrome image built on a fixed `ca-certificates`
+(`20250419+deb13u1` or later). The other two images are unmodified.
 
 All three run their default entrypoints (`sdk.useEntrypoint()`); `karakeep-sub`
 (bundles `s6-overlay`) and `chrome-sub` (its launcher script backgrounds a

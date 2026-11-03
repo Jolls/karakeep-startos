@@ -25,7 +25,11 @@ export const manifest = setupManifest({
     // ghcr.io 2026-09-01: amd64 + arm64.
     chrome: {
       source: {
-        dockerTag: 'ghcr.io/karakeep-app/karakeep-chrome:154.0.8037.57-r1',
+        dockerBuild: {
+          buildArgs: {
+            IMAGE: 'ghcr.io/karakeep-app/karakeep-chrome:154.0.8037.57-r1',
+          },
+        },
       },
       arch: ['x86_64', 'aarch64'],
     },

@@ -6,7 +6,10 @@ Upstream is tracked as three independently pinned prebuilt Docker images in
 - `images.karakeep.source.dockerTag` — the Karakeep app itself, tagged
   `ghcr.io/karakeep-app/karakeep:<version>` (no `v` prefix on the image tag,
   unlike the git release tag which does have one).
-- `images.chrome.source.dockerTag` — `ghcr.io/karakeep-app/karakeep-chrome`,
+- `images.chrome.source.dockerBuild.buildArgs.IMAGE` — `ghcr.io/karakeep-app/karakeep-chrome`
+  (built through the root `Dockerfile`, a temporary eMudhra CA-store layer;
+  remove it and restore `source: { dockerTag }` in the first bump whose image
+  has `ca-certificates` 20250419+deb13u1 or later: `docker run --rm --entrypoint sh <image> -c 'grep -c MIICTjCCAdOgAwIBAgIKPPYHqWhwDtqLhDAKBggqhkjOPQQDAzBr /etc/ssl/certs/ca-certificates.crt'` must print `0`),
   tagged by its bundled Chrome version, not the Karakeep app version. Only
   bump it when upstream's `docker/docker-compose.yml` moves its own pin (or
   Chrome ships a security fix) — it does not track Karakeep releases.
