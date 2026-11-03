@@ -52,6 +52,31 @@ you've saved.
   a lower setting if your server becomes sluggish while Karakeep indexes a
   large library; higher settings index faster. Karakeep restarts when you save.
 
+## Using the command line or an AI assistant
+
+Karakeep's official command-line tool, `karakeep`, works against your
+server, and so does the upstream
+[agent skill](https://docs.karakeep.app/integrations/agentic-skills) that
+teaches an AI assistant to use it for searching, saving, and organizing
+bookmarks. You need an API key and your service's address.
+
+1. In Karakeep, open **Settings → API Keys** and create a key.
+2. Install the tool with `npm install -g @karakeep/cli`.
+3. Run `karakeep auth init`. Enter one of your service's addresses (the one
+   you use for **Web Interface**) and the API key, then check it with
+   `karakeep whoami`.
+
+Your computer must be able to reach that address, so a LAN address only
+works while you are on your home network. If `whoami` says `fetch failed`
+for an `https` address, Node doesn't trust your server's certificate yet;
+install your StartOS root CA on your computer and run the tool with
+`NODE_OPTIONS=--use-system-ca`.
+
+`karakeep bookmarks search` takes the same search syntax as the web
+interface, and its `semantic` and `hybrid` modes only work once you have set
+up semantic search (see below). `karakeep bookmarks add --asset` uploads a
+PDF or image, and `--json` makes any command's output machine-readable.
+
 ## Using AI tagging
 
 Karakeep doesn't run a model itself — it needs an Ollama server (or an
